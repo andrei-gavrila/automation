@@ -42,7 +42,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
             case "getSensor":
                 s = persistenceService.getSensor(command.getDataSensor().getMRId());
 
-                if (s == null && s.isReported()) {
+                if (s != null && s.isReported()) {
                     session.sendMessage(new TextMessage(objectMapper.writeValueAsString(s)));
                 }
                 break;
