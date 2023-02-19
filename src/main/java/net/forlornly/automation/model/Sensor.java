@@ -20,6 +20,7 @@ public class Sensor {
     private String mRId;
     private int value;
     private Timestamp timestamp;
+    private boolean reported;
     @JsonIgnore
     private List<WebSocketSession> webSocketSessions;
 }
