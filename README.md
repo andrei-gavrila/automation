@@ -1,2 +1,2 @@
-# automation
+# Automation
 Automation
