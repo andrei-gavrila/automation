@@ -13,7 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class DataSensor {
+public class Equipment {
     @JsonProperty("mRId")
     private String mRId;
     private int value;

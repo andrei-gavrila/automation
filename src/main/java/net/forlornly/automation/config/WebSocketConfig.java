@@ -15,6 +15,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
     WebSocketHandler webSocketHandler;
 
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(webSocketHandler, "/automation").setAllowedOrigins("*");
+        registry.addHandler(webSocketHandler, "/equipment").setAllowedOrigins("*");
     }
 }

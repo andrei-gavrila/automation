@@ -14,7 +14,7 @@ import org.springframework.web.socket.WebSocketSession;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.log4j.Log4j2;
-import net.forlornly.automation.model.Sensor;
+import net.forlornly.automation.model.Equipment;
 import net.forlornly.automation.persistence.Root;
 import one.microstream.storage.embedded.types.EmbeddedStorage;
 import one.microstream.storage.embedded.types.EmbeddedStorageManager;
@@ -42,86 +42,87 @@ public class PersistenceService {
         } else {
             root = (Root) storageManager.root();
 
-            log.info("Loaded persistence, retrieved {} value(s)", root.getSensors().size());
+            log.info("Loaded persistence, retrieved {} value(s)", root.getEquipmentList().size());
         }
     }
 
-    public synchronized void setSensor(String mRId, int value, Timestamp timestamp, boolean reported)
+    public synchronized void setEquipment(String mRId, int value, Timestamp timestamp, boolean reported)
             throws IOException {
-        for (Sensor s : root.getSensors()) {
-            if (s.getMRId().equals(mRId)) {
-                s.setValue(value);
-                s.setTimestamp(timestamp);
-                s.setTimestamp(timestamp);
-                s.setReported(reported);
+        for (Equipment e : root.getEquipmentList()) {
+            if (e.getMRId().equals(mRId)) {
+                e.setValue(value);
+                e.setTimestamp(timestamp);
+                e.setTimestamp(timestamp);
+                e.setReported(reported);
 
-                storageManager.store(s);
+                storageManager.store(e);
 
-                log.debug("Updated sensor {} with value {}, timestamp {} and reported {}", mRId, value, timestamp,
+                log.debug("Updated Equipment {} with value {}, timestamp {} and reported {}", mRId, value, timestamp,
                         reported);
 
-                if (s.isReported()) {
-                    log.debug("Sending sensor {} with value {}, timestamp {} and reported {} to {} WebSocketSession(s)",
-                            mRId, value, timestamp, reported, s.getWebSocketSessions().size());
+                if (e.isReported()) {
+                    log.debug("Sending Equipment {} with value {}, timestamp {} and reported {} to {} WebSocketSession(s)",
+                            mRId, value, timestamp, reported, e.getWebSocketSessions().size());
 
-                    for (WebSocketSession wss : s.getWebSocketSessions()) {
-                        wss.sendMessage(new TextMessage(objectMapper.writeValueAsString(s)));
+                    for (WebSocketSession wss : e.getWebSocketSessions()) {
+                        wss.sendMessage(new TextMessage(objectMapper.writeValueAsString(e)));
                     }
                 }
+
                 return;
             }
         }
 
-        root.getSensors().add(new Sensor(mRId, value, timestamp, reported, new ArrayList<WebSocketSession>()));
+        root.getEquipmentList().add(new Equipment(mRId, value, timestamp, reported, new ArrayList<WebSocketSession>()));
 
-        storageManager.store(root.getSensors());
+        storageManager.store(root.getEquipmentList());
 
-        log.debug("Created sensor {} with value {}, timestamp {} and reported {}", mRId, value, timestamp, reported);
+        log.debug("Created Equipment {} with value {}, timestamp {} and reported {}", mRId, value, timestamp, reported);
     }
 
-    public synchronized Sensor getSensor(String mRId) {
-        for (Sensor s : root.getSensors()) {
-            if (s.getMRId().equals(mRId)) {
-                log.debug("Found sensor {} with value {}, timestamp {} and reported {}", s.getMRId(), s.getValue(),
-                        s.getTimestamp(), s.isReported());
+    public synchronized Equipment getEquipment(String mRId) {
+        for (Equipment e : root.getEquipmentList()) {
+            if (e.getMRId().equals(mRId)) {
+                log.debug("Found Equipment {} with value {}, timestamp {} and reported {}", e.getMRId(), e.getValue(),
+                        e.getTimestamp(), e.isReported());
 
-                return s;
+                return e;
             }
         }
 
-        log.debug("Sensor {} not found", mRId);
+        log.debug("Equipment {} not found", mRId);
 
         return null;
     }
 
-    public synchronized void addWebSocketSessionToSensor(String mRId, WebSocketSession session) {
-        for (Sensor s : root.getSensors()) {
-            if (s.getMRId().equals(mRId)) {
-                for (WebSocketSession wss : s.getWebSocketSessions()) {
+    public synchronized void addWebSocketSessionToEquipment(String mRId, WebSocketSession session) {
+        for (Equipment e : root.getEquipmentList()) {
+            if (e.getMRId().equals(mRId)) {
+                for (WebSocketSession wss : e.getWebSocketSessions()) {
                     if (wss.equals(session)) {
-                        log.debug("Ignoring adding WebSocketSession {} to sensor {}, duplicate registration", session,
-                                s.getMRId());
+                        log.debug("Ignoring adding WebSocketSession {} to Equipment {}, duplicate registration", session,
+                                e.getMRId());
 
                         return;
                     }
                 }
 
-                s.getWebSocketSessions().add(session);
+                e.getWebSocketSessions().add(session);
 
-                log.debug("Added WebSocketSession {} to sensor {}", session, s.getMRId());
+                log.debug("Added WebSocketSession {} to Equipment {}", session, e.getMRId());
 
                 return;
             }
         }
 
-        log.debug("Sensor {} not found", mRId);
+        log.debug("Equipment {} not found", mRId);
     }
 
-    public synchronized void removeAllWebSocketSessionFromSensors(WebSocketSession session) {
-        log.debug("Removing WebSocketSession {} from all sensors", session);
+    public synchronized void removeAllWebSocketSessionFromEquipmentList(WebSocketSession session) {
+        log.debug("Removing WebSocketSession {} from EquipmentList", session);
 
-        for (Sensor s : root.getSensors()) {
-            s.getWebSocketSessions().removeIf(wss -> wss.equals(session));
+        for (Equipment e : root.getEquipmentList()) {
+            e.getWebSocketSessions().removeIf(wss -> wss.equals(session));
         }
     }
 }
