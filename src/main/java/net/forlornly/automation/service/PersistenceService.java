@@ -57,12 +57,11 @@ public class PersistenceService {
 
                 storageManager.store(e);
 
-                log.debug("Updated Equipment {} with value {}, timestamp {} and reported {}", mRId, value, timestamp,
-                        reported);
+                log.debug("Updated Equipment {}", e);
 
                 if (e.isReported()) {
-                    log.debug("Sending Equipment {} with value {}, timestamp {} and reported {} to {} WebSocketSession(s)",
-                            mRId, value, timestamp, reported, e.getWebSocketSessions().size());
+                    log.debug("Sending Equipment {} to {} WebSocketSession(s)",
+                            e, e.getWebSocketSessions().size());
 
                     for (WebSocketSession wss : e.getWebSocketSessions()) {
                         wss.sendMessage(new TextMessage(objectMapper.writeValueAsString(e)));
@@ -83,8 +82,7 @@ public class PersistenceService {
     public synchronized Equipment getEquipment(String mRId) {
         for (Equipment e : root.getEquipmentList()) {
             if (e.getMRId().equals(mRId)) {
-                log.debug("Found Equipment {} with value {}, timestamp {} and reported {}", e.getMRId(), e.getValue(),
-                        e.getTimestamp(), e.isReported());
+                log.debug("Found Equipment {}", e);
 
                 return e;
             }
@@ -100,7 +98,8 @@ public class PersistenceService {
             if (e.getMRId().equals(mRId)) {
                 for (WebSocketSession wss : e.getWebSocketSessions()) {
                     if (wss.equals(session)) {
-                        log.debug("Ignoring adding WebSocketSession {} to Equipment {}, duplicate registration", session,
+                        log.debug("Ignoring adding WebSocketSession {} to Equipment {}, duplicate registration",
+                                session,
                                 e.getMRId());
 
                         return;
