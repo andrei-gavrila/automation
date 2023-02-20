@@ -1,1 +1,67 @@
-HOME
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Automation</title>
+
+    <script>
+        function consoleLog(message) {
+            document.getElementById('console').innerHTML += message + "\n";
+        }
+
+        var ws = new WebSocket(document.location.href.replace('http', 'ws') + 'equipment');
+
+        ws.addEventListener('open', (event) => {
+            consoleLog('Connected!');
+        });
+
+        ws.addEventListener('message', (event) => {
+            consoleLog('Received: ' + event.data);
+        });
+
+        function set(message) {
+            message = '{"operation":"set","equipment":{"mRId":"' + document.getElementById('mRId').value + '","value":' + document.getElementById('value').value + ',"timestamp":"' + document.getElementById('timestamp').value + '"}}';
+
+            consoleLog('Sending: ' + message);
+
+            ws.send(message);
+        }
+
+        function get(message) {
+            message = '{"operation":"get","equipment":{"mRId":"' + document.getElementById('mRId').value + '"}}';
+
+            consoleLog('Sending: ' + message);
+
+            ws.send(message);
+        }
+
+        function register(message) {
+            message = '{"operation":"register","equipment":{"mRId":"' + document.getElementById('mRId').value + '"}}';
+
+            consoleLog('Sending: ' + message);
+
+            ws.send(message);
+        }
+    </script>
+</head>
+
+<body>
+    <h1>HOME</h1>
+
+    mRId: <input type="text" id="mRId" /><br />
+    value: <input type="text" id="value" /><br />
+    timestamp: <input type="text" id="timestamp" /><br />
+
+    <hr />
+
+    <input type="button" value="set" onclick="javascript: set();" />
+    <input type="button" value="get" onclick="javascript: get();" />
+    <input type="button" value="register" onclick="javascript: register();" />
+
+    <hr />
+
+    <textarea id="console"></textarea>
+</body>
+
+</html>
