@@ -16,7 +16,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class Sensor {
+public class Equipment {
     private String mRId;
     private int value;
     private Timestamp timestamp;

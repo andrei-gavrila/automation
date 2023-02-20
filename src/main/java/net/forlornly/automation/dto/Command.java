@@ -11,5 +11,5 @@ import lombok.Setter;
 @Setter
 public class Command {
     private String operation;
-    private DataSensor dataSensor;
+    private Equipment equipment;
 }

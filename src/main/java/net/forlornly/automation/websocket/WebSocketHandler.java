@@ -12,7 +12,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import net.forlornly.automation.dto.Command;
-import net.forlornly.automation.model.Sensor;
+import net.forlornly.automation.model.Equipment;
 import net.forlornly.automation.service.PersistenceService;
 
 @Component
@@ -27,39 +27,39 @@ public class WebSocketHandler extends TextWebSocketHandler {
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
         Command command = objectMapper.readValue(message.getPayload(), Command.class);
 
-        Sensor s;
+        Equipment e;
 
         switch (command.getOperation()) {
-            case "setSensor":
-                persistenceService.setSensor(command.getDataSensor().getMRId(), command.getDataSensor().getValue(),
-                        command.getDataSensor().getTimestamp(), true);
+            case "set":
+                persistenceService.setEquipment(command.getEquipment().getMRId(), command.getEquipment().getValue(),
+                        command.getEquipment().getTimestamp(), true);
 
-                s = persistenceService.getSensor(command.getDataSensor().getMRId());
+                e = persistenceService.getEquipment(command.getEquipment().getMRId());
 
-                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(s)));
+                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(e)));
                 break;
 
-            case "getSensor":
-                s = persistenceService.getSensor(command.getDataSensor().getMRId());
+            case "get":
+                e = persistenceService.getEquipment(command.getEquipment().getMRId());
 
-                if (s != null && s.isReported()) {
-                    session.sendMessage(new TextMessage(objectMapper.writeValueAsString(s)));
+                if (e != null && e.isReported()) {
+                    session.sendMessage(new TextMessage(objectMapper.writeValueAsString(e)));
                 }
                 break;
 
             case "register":
-                s = persistenceService.getSensor(command.getDataSensor().getMRId());
+                e = persistenceService.getEquipment(command.getEquipment().getMRId());
 
-                if (s == null) {
-                    persistenceService.setSensor(command.getDataSensor().getMRId(), command.getDataSensor().getValue(),
-                            command.getDataSensor().getTimestamp(), false);
+                if (e == null) {
+                    persistenceService.setEquipment(command.getEquipment().getMRId(), command.getEquipment().getValue(),
+                            command.getEquipment().getTimestamp(), false);
                 } else {
-                    if (s.isReported()) {
-                        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(s)));
+                    if (e.isReported()) {
+                        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(e)));
                     }
                 }
 
-                persistenceService.addWebSocketSessionToSensor(command.getDataSensor().getMRId(), session);
+                persistenceService.addWebSocketSessionToEquipment(command.getEquipment().getMRId(), session);
                 break;
 
             default:
@@ -68,6 +68,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        persistenceService.removeAllWebSocketSessionFromSensors(session);
+        persistenceService.removeAllWebSocketSessionFromEquipmentList(session);
     }
 }
