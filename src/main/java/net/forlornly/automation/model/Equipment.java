@@ -11,16 +11,19 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class Equipment {
     private String mRId;
     private int value;
     private Timestamp timestamp;
     private boolean reported;
     @JsonIgnore
+    @ToString.Exclude
     private List<WebSocketSession> webSocketSessions;
 }
