@@ -20,6 +20,14 @@
             consoleLog('Received: ' + event.data);
         });
 
+        function login(message) {
+            message = '{"operation":"login","login":{"username":"' + document.getElementById('username').value + '","password":"' + document.getElementById('password').value + '"}}';
+
+            consoleLog('Sending: ' + message);
+
+            ws.send(message);
+        }
+
         function set(message) {
             message = '{"operation":"set","equipment":{"mRId":"' + document.getElementById('mRId').value + '","value":' + document.getElementById('value').value + ',"timestamp":"' + document.getElementById('timestamp').value + '"}}';
 
@@ -49,6 +57,17 @@
 <body>
     <h1>HOME</h1>
 
+    <hr />
+
+    username: <input type="text" id="username" /><br />
+    password: <input type="text" id="password" /><br />
+
+    <hr />
+
+    <input type="button" value="login" onclick="javascript: login();" />
+
+    <hr />
+
     mRId: <input type="text" id="mRId" /><br />
     value: <input type="text" id="value" /><br />
     timestamp: <input type="text" id="timestamp" /><br />
@@ -61,7 +80,7 @@
 
     <hr />
 
-    <textarea id="console"></textarea>
+    <textarea id="console" cols="100" rows="20"></textarea>
 </body>
 
 </html>

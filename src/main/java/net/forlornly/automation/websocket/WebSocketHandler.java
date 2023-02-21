@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import net.forlornly.automation.dto.Command;
 import net.forlornly.automation.model.Equipment;
+import net.forlornly.automation.model.User;
 import net.forlornly.automation.service.PersistenceService;
 
 @Component
@@ -27,39 +28,61 @@ public class WebSocketHandler extends TextWebSocketHandler {
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
         Command command = objectMapper.readValue(message.getPayload(), Command.class);
 
+        User u;
         Equipment e;
 
         switch (command.getOperation()) {
-            case "set":
-                persistenceService.setEquipment(command.getEquipment().getMRId(), command.getEquipment().getValue(),
-                        command.getEquipment().getTimestamp(), true);
+            case "login":
+                u = persistenceService.getUser(command.getLogin().getUsername(), command.getLogin().getPassword());
 
-                e = persistenceService.getEquipment(command.getEquipment().getMRId());
-
-                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(e)));
+                if (u != null) {
+                    persistenceService.setSession(u, session);
+                }
                 break;
 
-            case "get":
-                e = persistenceService.getEquipment(command.getEquipment().getMRId());
+            case "set":
+                u = persistenceService.getUserFromSession(session);
 
-                if (e != null && e.isReported()) {
+                if (u != null && u.getRoles().contains("writer")) {
+                    persistenceService.setEquipment(command.getEquipment().getMRId(), command.getEquipment().getValue(),
+                            command.getEquipment().getTimestamp(), true);
+
+                    e = persistenceService.getEquipment(command.getEquipment().getMRId());
+
                     session.sendMessage(new TextMessage(objectMapper.writeValueAsString(e)));
                 }
                 break;
 
-            case "register":
-                e = persistenceService.getEquipment(command.getEquipment().getMRId());
+            case "get":
+                u = persistenceService.getUserFromSession(session);
 
-                if (e == null) {
-                    persistenceService.setEquipment(command.getEquipment().getMRId(), command.getEquipment().getValue(),
-                            command.getEquipment().getTimestamp(), false);
-                } else {
-                    if (e.isReported()) {
+                if (u != null && u.getRoles().contains("reader")) {
+                    e = persistenceService.getEquipment(command.getEquipment().getMRId());
+
+                    if (e != null && e.isReported()) {
                         session.sendMessage(new TextMessage(objectMapper.writeValueAsString(e)));
                     }
                 }
+                break;
 
-                persistenceService.addWebSocketSessionToEquipment(command.getEquipment().getMRId(), session);
+            case "register":
+                u = persistenceService.getUserFromSession(session);
+
+                if (u != null && u.getRoles().contains("reader")) {
+                    e = persistenceService.getEquipment(command.getEquipment().getMRId());
+
+                    if (e == null) {
+                        persistenceService.setEquipment(command.getEquipment().getMRId(),
+                                command.getEquipment().getValue(),
+                                command.getEquipment().getTimestamp(), false);
+                    } else {
+                        if (e.isReported()) {
+                            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(e)));
+                        }
+                    }
+
+                    persistenceService.addWebSocketSessionToEquipment(command.getEquipment().getMRId(), session);
+                }
                 break;
 
             default:
@@ -68,6 +91,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        persistenceService.removeSession(session);
+
         persistenceService.removeAllWebSocketSessionFromEquipmentList(session);
     }
 }

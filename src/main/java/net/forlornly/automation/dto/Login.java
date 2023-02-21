@@ -9,8 +9,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class Command {
-    private String operation;
-    private Equipment equipment;
-    private Login login;
+public class Login {
+    private String username;
+    private String password;
 }
